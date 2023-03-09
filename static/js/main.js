@@ -97,6 +97,12 @@ uploadform.addEventListener("submit", function(event){
     paneldiv.appendChild(btn);
     document.getElementById("uploadbutton").disabled = false;
     document.getElementById("uploadbutton").value = "Upload";
+    var option = document.createElement("option");
+    option.id = "logooption" + data['id'];
+    option.value = data['id'];
+    option.textContent = data['id'];
+    logopanel = document.getElementById("logoselection");
+    logopanel.appendChild(option);
     var nologos = document.getElementById("nologos");
     if (nologos) {
       nologos.style.display = "none";
@@ -147,6 +153,7 @@ function DeleteLogoImage(clicked_id) {
     throw new Error(response.statusText);
   }).then((data) => {
     console.log(data);
+    document.getElementById("logooption" + id).remove();
     document.getElementById("logo" + id).remove();
   }).catch((error) => {
     console.log(error)

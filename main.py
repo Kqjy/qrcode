@@ -130,7 +130,7 @@ def uploadQR():
         if vertices_array is not None:
             result = data
         else:
-            result = "Something went wrong."
+            result = "Unable to read QR Code."
         message = '{"result":"' + result + '"}'
     else:
         message = '{"error":"No files provided."}'
