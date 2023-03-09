@@ -1,0 +1,7 @@
+opencv-python-headless
+deta
+flask
+wheel
+pillow
+qrcode
+numpy

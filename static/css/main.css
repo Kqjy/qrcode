@@ -1,0 +1,100 @@
+html, body {
+    font-family: Helvetica, Arial, sans-serif;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+	word-break: break-word;
+    background-color: #111;
+    color: white; 
+}
+input, label, select {
+    margin: 10px 0px;
+}
+input[type="submit"] {
+    width: 250px;
+    height: 30px;
+    border: none;
+    background-color: bisque;
+    border-radius: 12px;
+    cursor: pointer;
+}
+input[type="submit"]:hover {
+    background-color: rgb(255, 200, 150);
+}
+textarea {
+    width: 80%;
+    height: 80px;
+    resize: none;
+}
+.main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+.mainpanel {
+    width: 800px;
+    height: auto;
+    padding: 10px;
+    border: 2px solid gray;
+    border-radius: 12px;
+    margin: 5px;
+}
+.generatedQR {
+    margin: 5px;
+}
+.generatedOptions {
+    display: none;
+}
+#qrimage {
+    margin: 8px;
+    width: 128px;
+}
+.recentimage {
+    display: inline-block;
+    width: 128px;
+    margin: 5px;
+}
+.recentqrimage {
+    width: 128px;
+}
+.deletebutton {
+    border: none;
+    background-color: red;
+    color: white;
+    border-radius: 12px;
+    cursor: pointer;
+}
+.deletebutton:hover {
+    background-color: rgb(180, 0, 0);
+}
+#appversion {
+    font-size: 8px;
+}
+#notification {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    display: none;
+    margin: 5px;
+    padding: 8px;
+    border-radius: 12px;
+}
+.switchto {
+    padding: 5px;
+    font-size: 14px;
+    background-color: bisque;
+    border-radius: 12px;
+}
+.switchto:hover {
+    background-color: rgb(255, 200, 150);
+}
+.switchto a {
+    color: chocolate;
+    text-decoration: none;
+}
+@media screen and (max-width: 600px) {
+    input[type="submit"] {
+        width: 70%;
+    }
+}

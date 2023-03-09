@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+        <link rel="shortcut icon" href="{{ url_for('static', filename='images/spaceicon.png') }}" type="image/x-icon"/>
+        <title>QR Code Generator</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    </head>
+    <body>
+        <h1>QR Code Generator <span class="switchto"><a href="/read">/ Reader ➜</a></span></h1>
+        <div id="notification"></div>
+        <div class="generatedQR">
+            <img id="qrimage" src="{{ url_for('static', filename='images/blank.png') }}" alt="A QR Code">
+            <div class="generatedOptions">
+                <button>Embed</button>
+            </div>
+        </div>
+        <div class="main">
+            <div class="mainpanel">
+                <form id="qrgenform" action="{{ url_for('generateQR')}}" method="post">
+                    <textarea id="textinput" name="textinput" placeholder="Insert text or link and click the button below to generate."></textarea><br>
+                    <label for="fillcolor">Fill color:</label>
+                    <input type="color" name="fillcolor" value="#000000">
+                    <label for="bgcolor">Background color:</label>
+                    <input type="color" name="bgcolor" value="#ffffff"><br>
+                    <label for="style">Style:</label>
+                    <select name="style">
+                        <option value="square" selected>Square (default)</option>
+                        <option value="gappedsquare">Gapped Square</option>
+                        <option value="circle">Circle</option>
+                        <option value="rounded">Rounded</option>
+                        <option value="vertical">Vertical</option>
+                        <option value="horizontal">Horizontal</option>
+                    </select><br>
+                    <label for="logo">Logo:</label>
+                    <select name="logo">
+                        <option value="none">~ None ~</option>
+                        {%if uploaded %}
+                            {%for i in range(0, lenuploaded)%} 
+                                <option value="{{uploaded[i]}}">{{uploaded[i]}}</option> 
+                            {%endfor%}
+                        {%endif%}
+                    </select><br>
+                    <input id="generatebutton" type="submit" value="Generate">
+                </form>
+            </div>
+        </div>
+        <div class="main">
+            <div class="mainpanel">
+                <h3>Recently Generated QR Codes</h3>
+                <div id="recentimagespanel" class="recentimagespanel">
+                    {%if files %}        
+                        {%for i in range(0, lenqr)%} 
+                            <div id="recentimage{{files[i]}}" class="recentimage">
+                                <img id="recentqrimage{{files[i]}}" class="recentqrimage" src="/qr/{{files[i]}}" alt="A QR Code Image">
+                                <button class="deletebutton" id="{{files[i]}}" onclick="DeleteQRImage(this.id)">Delete</button>
+                            </div>
+                        {%endfor%}
+                    {%else%}
+                        <p id="noqrs"><i>~ No recent QR code generated. ~</i></p>    
+                    {%endif%}
+                </div>
+            </div>
+        </div>
+        <div class="main">
+            <div class="mainpanel">
+                <h3>Uploaded Logos</h3>
+                <div id="logospanel" class="logospanel">
+                    <div id="logospanelimages">
+                        {%if uploaded %}
+                            {%for i in range(0, lenuploaded)%} 
+                                <div id="logo{{uploaded[i]}}" class="recentimage">
+                                    <img id="logoimage{{uploaded[i]}}" class="recentqrimage" src="/upload/{{uploaded[i]}}" alt="A QR Code Image">
+                                    <button class="deletebutton" id="{{uploaded[i]}}" onclick="DeleteLogoImage(this.id)">Delete</button>
+                                </div>
+                            {%endfor%}
+                        {%else%}
+                            <p id="nologos"><i>~ No Logos Uploaded. ~</i></p>
+                        {%endif%}
+                    </div>
+                    <form id="uploadform" action="{{ url_for('uploadLogo')}}" enctype="multipart/form-data" method="post">
+                        <input id="uploadfile" type="file" name="filename" accept="image/*">
+                        <input id="uploadbutton" type="submit" value="Upload">
+                    </form>
+                </div>
+            </div>
+        </div>
+        <p id="appversion">QR Code / v1.0a-1 / Generator</p>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/main.js') }}"></script>
+    </body>
+</html>
