@@ -2,12 +2,10 @@ from flask import Flask, render_template, redirect, request, flash, send_file
 from deta import Deta
 from PIL import Image, ImageColor
 
-import cv2
-import qrcode
-from qrcode.image.styledpil import StyledPilImage
-from qrcode.image.styles import colormasks, moduledrawers
-
+import segno
 import numpy
+import cv2
+
 import os
 import random
 import string
@@ -18,9 +16,6 @@ deta = Deta(os.environ['DETA_PROJECT_KEY'])
 drive = deta.Drive('Saved_Images')
 uploaddrive = deta.Drive('Uploaded_Images')
 app = Flask(__name__)
-modulestyles = {"square":moduledrawers.SquareModuleDrawer(), "gappedsquare":moduledrawers.GappedSquareModuleDrawer(),
-        "circle":moduledrawers.CircleModuleDrawer(),"rounded":moduledrawers.RoundedModuleDrawer(),"vertical":moduledrawers.VerticalBarsDrawer(),
-        "horizontal":moduledrawers.HorizontalBarsDrawer()}
 
 def randomurl(length):
    letters = string.ascii_lowercase + string.digits + string.ascii_uppercase
@@ -69,28 +64,35 @@ def getQR(url):
 @app.route('/api/genqr', methods=["POST"])
 def generateQR():
     input = request.form["textinput"]
-    fcolor = ImageColor.getcolor(request.form["fillcolor"],"RGB")
-    bcolor = ImageColor.getcolor(request.form["bgcolor"],"RGB")
-    style = request.form["style"]
-    logo = request.form["logo"]
-    qr = qrcode.QRCode(
-        version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_H,
-        box_size=10,
-        border=4,
-    )
-    qr.add_data(input)
-    qr.make(fit=True)
-    mask = colormasks.SolidFillColorMask(back_color=bcolor,front_color=fcolor)
-    if logo == "none":
-        qrimg = qr.make_image(image_factory=StyledPilImage, color_mask=mask, module_drawer=modulestyles[style])
-    else:
-        embeded_image = uploaddrive.get(logo)
-        qrimg = qr.make_image(image_factory=StyledPilImage, color_mask=mask, module_drawer=modulestyles[style], embeded_image_path=embeded_image)
+    fcolor = request.form["fgcolor"]
+    bcolor = request.form["bgcolor"]
+    finderfcolor = request.form["finderfgcolor"]
+    finderbcolor = request.form["finderbgcolor"]
+    logo = request.form["logo"] 
+    art = request.form["art"] 
     qrname = randomurl(8) + ".png"
     output = io.BytesIO()
-    qrimg.save(output, format='PNG')
+    qr = segno.make_qr(input, error='h')
+    if art != "none":
+        qr.to_artistic(background=uploaddrive.get(art), target=output, scale=4, kind='png', 
+                       dark=fcolor, light=bcolor, finder_dark=finderfcolor, finder_light=finderbcolor)
+        output.seek(0)
+    else:
+        qr.save(output, kind='PNG', scale=4, dark=fcolor, light=bcolor, finder_dark=finderfcolor, finder_light=finderbcolor)
     output.seek(0)
+    if logo != "none":
+        embeded_image = uploaddrive.get(logo)
+        qr = Image.open(output)
+        qr = qr.convert('RGB')
+        output = io.BytesIO()
+        img_width, img_height = qr.size
+        logo_max_size = img_height // 3
+        img = Image.open(embeded_image)
+        img.thumbnail((logo_max_size, logo_max_size), Image.Resampling.LANCZOS)
+        box = ((img_width - img.size[0]) // 2, (img_height - img.size[1]) // 2)
+        qr.paste(img, box)
+        qr.save(output, format="PNG")
+        output.seek(0)
     drive.put(qrname, output, content_type='image/png')
     message = '{"item":"https://' + os.environ['DETA_SPACE_APP_HOSTNAME']  + '/qr/' + qrname +'", "id":"' + qrname + '"}'
     return message
@@ -123,8 +125,8 @@ def uploadLogo():
 def uploadQR():
     file = request.files["filename"].read()
     if file:
-        getimg = numpy.fromstring(file,numpy.uint8)
-        img = cv2.imdecode(getimg, cv2.IMREAD_UNCHANGED)
+        getimg = numpy.frombuffer(file,numpy.uint8)
+        img = cv2.imdecode(getimg, cv2.IMREAD_ANYCOLOR)
         detector = cv2.QRCodeDetector()
         data, vertices_array, binary_qrcode = detector.detectAndDecode(img)
         if vertices_array is not None:

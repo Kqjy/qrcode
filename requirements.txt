@@ -1,7 +1,8 @@
-opencv-python-headless
 deta
 flask
-wheel
-pillow
-qrcode
 numpy
+opencv-python-headless
+pillow
+qrcode-artistic
+wheel
+segno

@@ -80,18 +80,16 @@ textarea {
     padding: 8px;
     border-radius: 12px;
 }
-.switchto {
+.switchto a {
     padding: 5px;
     font-size: 14px;
     background-color: bisque;
     border-radius: 12px;
-}
-.switchto:hover {
-    background-color: rgb(255, 200, 150);
-}
-.switchto a {
     color: chocolate;
     text-decoration: none;
+}
+.switchto a:hover {
+    background-color: rgb(255, 200, 150);
 }
 @media screen and (max-width: 600px) {
     input[type="submit"] {

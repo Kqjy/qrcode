@@ -20,22 +20,26 @@
                     </div>
                 </div>
                 <form id="qrgenform" action="{{ url_for('generateQR')}}" method="post">
-                    <textarea id="textinput" name="textinput" placeholder="Insert text or link and click the button below to generate."></textarea><br>
-                    <label for="fillcolor">Fill color:</label>
-                    <input type="color" name="fillcolor" value="#000000">
-                    <label for="bgcolor">Background color:</label>
+                    <textarea id="textinput" maxlength="2953" name="textinput" placeholder="Insert text or link and click the button below to generate."></textarea><br>
+                    <label for="fgcolor">Foreground:</label>
+                    <input type="color" name="fgcolor" value="#000000">
+                    <label for="bgcolor">Background:</label>
                     <input type="color" name="bgcolor" value="#ffffff"><br>
-                    <label for="style">Style:</label>
-                    <select name="style">
-                        <option value="square" selected>Square (default)</option>
-                        <option value="gappedsquare">Gapped Square</option>
-                        <option value="circle">Circle</option>
-                        <option value="rounded">Rounded</option>
-                        <option value="vertical">Vertical</option>
-                        <option value="horizontal">Horizontal</option>
-                    </select><br>
+                    <label for="finderfgcolor">Finder (Fore):</label>
+                    <input type="color" name="finderfgcolor" value="#000000">
+                    <label for="finderbgcolor">Finder (Back):</label>
+                    <input type="color" name="finderbgcolor" value="#ffffff"><br>
                     <label for="logo">Logo:</label>
                     <select id="logoselection" name="logo">
+                        <option value="none">~ None ~</option>
+                        {%if uploaded %}
+                            {%for i in range(0, lenuploaded)%} 
+                                <option id="logooption{{uploaded[i]}}" value="{{uploaded[i]}}">{{uploaded[i]}}</option> 
+                            {%endfor%}
+                        {%endif%}
+                    </select><br>
+                    <label for="art">Art:</label>
+                    <select id="artselection" name="art">
                         <option value="none">~ None ~</option>
                         {%if uploaded %}
                             {%for i in range(0, lenuploaded)%} 
@@ -87,7 +91,7 @@
                 </div>
             </div>
         </div>
-        <p id="appversion">QR Code / v1.0a-2 / Generator</p>
+        <p id="appversion">QR Code / v1.0a-3 / Generator (Sengo)</p>
         <script type="text/javascript" src="{{ url_for('static', filename='js/main.js') }}"></script>
     </body>
 </html>
