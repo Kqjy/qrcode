@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, request, flash, send_file
+from flask import Flask, render_template, request, Response, jsonify
 from deta import Deta
 from PIL import Image, ImageColor
 
@@ -33,6 +33,38 @@ def get_all_files(drive):
         last = paging.get("last") if paging else None
     return all_files
 
+def GenerateQRCode(input, fcolor, bcolor, finderfcolor, finderbcolor, logo, art):
+    qrname = randomurl(8) + ".png"
+    output = io.BytesIO()
+    qr = segno.make_qr(input, error='h')
+    if art != "none":
+        background_file = uploaddrive.get(art)
+        if background_file is not None:
+            qr.to_artistic(background=background_file, target=output, scale=4, kind='png', 
+                        dark=fcolor, light=bcolor, finder_dark=finderfcolor, finder_light=finderbcolor)
+            output.seek(0)
+    else:
+        qr.save(output, kind='PNG', scale=4, dark=fcolor, light=bcolor, finder_dark=finderfcolor, finder_light=finderbcolor)
+    output.seek(0)
+    if logo != "none":
+        embeded_image = uploaddrive.get(logo)
+        if embeded_image is not None:
+            qr = Image.open(output)
+            qr = qr.convert('RGB')
+            output = io.BytesIO()
+            img_width, img_height = qr.size
+            logo_max_size = img_height // 3
+            img = Image.open(embeded_image)
+            img.thumbnail((logo_max_size, logo_max_size), Image.Resampling.LANCZOS)
+            box = ((img_width - img.size[0]) // 2, (img_height - img.size[1]) // 2)
+            qr.paste(img, box)
+            qr.save(output, format="PNG")
+            output.seek(0)
+    drive.put(qrname, output, content_type='image/png')
+    message = '{"item":"https://' + os.environ['DETA_SPACE_APP_HOSTNAME']  + '/qr/' + qrname +'", "id":"' + qrname + '"}'
+    return message
+
+
 @app.route('/', methods=["GET"])
 def mainpage():
     getQRs = get_all_files(drive)
@@ -48,18 +80,26 @@ def readerpage():
 @app.route('/upload/<url>', methods=["GET"])
 def getUploadedFile(url):
     try:
-        filename = uploaddrive.get(url)
-        return send_file(filename, mimetype='image/*')
+        fname = uploaddrive.get(url)
+        if fname is None:
+            return render_template("errors/404.html"), 404
+        filename = fname.read()
+        return Response(filename, mimetype='image/*')
     except:
-        return render_template("errors/404.html"), 404
+        return "Something went wrong"
 
 @app.route('/qr/<url>', methods=["GET"])
 def getQR(url):
     try:
-        filename = drive.get(url)
-        return send_file(filename, mimetype='image/png')
+        fname = drive.get(url)
+        if fname is None:
+            return render_template("errors/404.html"), 404
+        filename = fname.read()
+        return Response(filename, mimetype='image/png')
     except:
-        return render_template("errors/404.html"), 404
+        return "Something went wrong"
+
+## APIs
 
 @app.route('/api/genqr', methods=["POST"])
 def generateQR():
@@ -70,31 +110,7 @@ def generateQR():
     finderbcolor = request.form["finderbgcolor"]
     logo = request.form["logo"] 
     art = request.form["art"] 
-    qrname = randomurl(8) + ".png"
-    output = io.BytesIO()
-    qr = segno.make_qr(input, error='h')
-    if art != "none":
-        qr.to_artistic(background=uploaddrive.get(art), target=output, scale=4, kind='png', 
-                       dark=fcolor, light=bcolor, finder_dark=finderfcolor, finder_light=finderbcolor)
-        output.seek(0)
-    else:
-        qr.save(output, kind='PNG', scale=4, dark=fcolor, light=bcolor, finder_dark=finderfcolor, finder_light=finderbcolor)
-    output.seek(0)
-    if logo != "none":
-        embeded_image = uploaddrive.get(logo)
-        qr = Image.open(output)
-        qr = qr.convert('RGB')
-        output = io.BytesIO()
-        img_width, img_height = qr.size
-        logo_max_size = img_height // 3
-        img = Image.open(embeded_image)
-        img.thumbnail((logo_max_size, logo_max_size), Image.Resampling.LANCZOS)
-        box = ((img_width - img.size[0]) // 2, (img_height - img.size[1]) // 2)
-        qr.paste(img, box)
-        qr.save(output, format="PNG")
-        output.seek(0)
-    drive.put(qrname, output, content_type='image/png')
-    message = '{"item":"https://' + os.environ['DETA_SPACE_APP_HOSTNAME']  + '/qr/' + qrname +'", "id":"' + qrname + '"}'
+    message = GenerateQRCode(input, fcolor, bcolor, finderfcolor, finderbcolor, logo, art)
     return message
 
 @app.route('/api/deleteqr', methods=["POST"])
@@ -114,8 +130,9 @@ def deleteUpload():
 @app.route('/api/upload', methods=["POST"])
 def uploadLogo():
     file = request.files["filename"]
-    if file:
-        uploaddrive.put(file.filename, file)
+    if file and file.filename:
+        data = file.read()
+        uploaddrive.put(file.filename, data)
         message = '{"uploaded":"https://' + os.environ['DETA_SPACE_APP_HOSTNAME']  + '/upload/' + file.filename +'", "id":"' + file.filename + '"}'
     else:
         message = '{"error":"No files provided."}'
@@ -125,8 +142,8 @@ def uploadLogo():
 def uploadQR():
     file = request.files["filename"].read()
     if file:
-        getimg = numpy.frombuffer(file,numpy.uint8)
-        img = cv2.imdecode(getimg, cv2.IMREAD_ANYCOLOR)
+        getimg = numpy.frombuffer(file, numpy.uint8)
+        img = cv2.imdecode(getimg, cv2.IMREAD_GRAYSCALE)
         detector = cv2.QRCodeDetector()
         data, vertices_array, binary_qrcode = detector.detectAndDecode(img)
         if vertices_array is not None:
@@ -137,3 +154,34 @@ def uploadQR():
     else:
         message = '{"error":"No files provided."}'
     return message
+
+## Actions
+
+
+@app.route('/actions/generate', methods=["POST"])
+@app.route('/actions/generate/', methods=["POST"])
+def action_generateQR():
+    getReq = request.data
+    getReq = json.loads(getReq)
+    input = getReq["text"]
+    generate = json.loads(GenerateQRCode(input, "black", "white", "black", "white", "none", "none"))
+    message = generate["item"]
+    return message
+
+@app.route('/__space/actions', methods=["GET"])
+def actions():
+    return {
+        "actions": [
+            {
+                "name": "generate", 
+                "title": "Quick Generate", 
+                "path": "/actions/generate",
+                "input": [
+                    {
+                        "name": "text",
+                        "type": "string"
+                    }
+                ]
+            }
+        ]
+    }

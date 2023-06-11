@@ -19,12 +19,12 @@
                     <p id="decodedmessage"></p>
                 </div>
                 <form id="uploadform" action="{{ url_for('uploadQR')}}" enctype="multipart/form-data" method="post">
-                    <input id="uploadfile" type="file" name="filename" accept="image/png">
+                    <input id="uploadfile" type="file" name="filename" accept="image/*">
                     <input id="uploadbutton" type="submit" value="Upload">
                 </form>
             </div>
         </div>
-        <p id="appversion">QR Code / v1.0a-3 / Reader (OpenCV)</p>
+        <p id="appversion">QR Code / v1.1a-1 / Reader (OpenCV)</p>
         <script type="text/javascript" src="{{ url_for('static', filename='js/reader.js') }}"></script>
     </body>
 </html>

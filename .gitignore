@@ -2,3 +2,4 @@
 .spaceignore
 Discovery.md
 Spacefile
+__pycache__

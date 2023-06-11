@@ -22,14 +22,14 @@
                 <form id="qrgenform" action="{{ url_for('generateQR')}}" method="post">
                     <textarea id="textinput" maxlength="2953" name="textinput" placeholder="Insert text or link and click the button below to generate."></textarea><br>
                     <label for="fgcolor">Foreground:</label>
-                    <input type="color" name="fgcolor" value="#000000">
+                    <input id="fgcolor" type="color" name="fgcolor" value="#000000">
                     <label for="bgcolor">Background:</label>
-                    <input type="color" name="bgcolor" value="#ffffff"><br>
+                    <input id="bgcolor" type="color" name="bgcolor" value="#ffffff"><br>
                     <label for="finderfgcolor">Finder (Fore):</label>
-                    <input type="color" name="finderfgcolor" value="#000000">
+                    <input id="finderfgcolor" type="color" name="finderfgcolor" value="#000000">
                     <label for="finderbgcolor">Finder (Back):</label>
-                    <input type="color" name="finderbgcolor" value="#ffffff"><br>
-                    <label for="logo">Logo:</label>
+                    <input id="finderbgcolor" type="color" name="finderbgcolor" value="#ffffff"><br>
+                    <label for="logoselection">Logo:</label>
                     <select id="logoselection" name="logo">
                         <option value="none">~ None ~</option>
                         {%if uploaded %}
@@ -38,7 +38,7 @@
                             {%endfor%}
                         {%endif%}
                     </select><br>
-                    <label for="art">Art:</label>
+                    <label for="artselection">Art:</label>
                     <select id="artselection" name="art">
                         <option value="none">~ None ~</option>
                         {%if uploaded %}
@@ -70,7 +70,7 @@
         </div>
         <div class="main">
             <div class="mainpanel">
-                <h3>Uploaded Logos</h3>
+                <h3>Uploaded Custom Images</h3>
                 <div id="logospanel" class="logospanel">
                     <div id="logospanelimages">
                         {%if uploaded %}
@@ -81,7 +81,7 @@
                                 </div>
                             {%endfor%}
                         {%else%}
-                            <p id="nologos"><i>~ No Logos Uploaded. ~</i></p>
+                            <p id="nologos"><i>~ No Images Uploaded. ~</i></p>
                         {%endif%}
                     </div>
                     <form id="uploadform" action="{{ url_for('uploadLogo')}}" enctype="multipart/form-data" method="post">
@@ -91,7 +91,7 @@
                 </div>
             </div>
         </div>
-        <p id="appversion">QR Code / v1.0a-3 / Generator (Sengo)</p>
+        <p id="appversion">QR Code / v1.1a-1 / Generator (Sengo)</p>
         <script type="text/javascript" src="{{ url_for('static', filename='js/main.js') }}"></script>
     </body>
 </html>
